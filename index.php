@@ -15,44 +15,47 @@ try {
 } */
 
 //kinuha yung information na ininput ng user dun sa index.view.php na form
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['updateUser'])) {
+    $firstName = $_POST['first_name'];
+    $lastName = $_POST['last_name'];
+    $middleName = $_POST['middle_name'];
+    $age = $_POST['age'];
+    $updateID = (int)$_POST['updateUser'];
+
+    try {
+        $update_stmt = $pdo->prepare("UPDATE person SET first_name = ?, last_name = ?, middle_name = ?, age = ? WHERE id = ?");
+        $update_stmt->execute([$firstName, $lastName, $middleName, $age, $updateID]);
+    } catch (PDOException $e) {
+        echo "<div class='alert alert-error'>Update failed: " . $e->getMessage() . "</div>";
+    }
+}
+elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['updateUser'])) {
     $firstName = $_POST['first_name'];
     $lastName = $_POST['last_name'];
     $middleName = $_POST['middle_name'];
     $age = $_POST['age'];
 
-    //pinasok sa postgresql yung data na ininput ng user na galing sa form
     try {
         $push = $pdo->prepare("INSERT INTO person (first_name, last_name, middle_name, age) VALUES (?, ?, ?, ?)");
-        $push->execute([$firstName, $lastName, $middleName, $age]);
+        $push->execute([$firstName, $lastName, $middleName, $age]);    
     } catch (PDOException $e) {
         die("Error: " . $e->getMessage());
     }
-} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['removeID'])) {
+}
+elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['removeID'])) {
     $remove = (int)$_GET['removeID'];
 
     try {
         $remove_stmt = $pdo->prepare("DELETE FROM person WHERE id = ?");
         $remove_stmt->execute([$remove]);
+        
+        $success_message = "Record deleted successfully!";
+        
     } catch (PDOException $e) {
         echo "<div class='alert alert-error'>Delete failed: " . $e->getMessage() . "</div>";
     }
-} elseif ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['updateUser'])) {
-    $firstName = $_GET['first_name'];
-    $lastName = $_GET['last_name'];
-    $middleName = $_GET['middle_name'];
-    $age = $_GET['age'];
-    $updateID = (int)$_GET['updateUser'];
-
-    try {
-        $update_stmt = $pdo->prepare("UPDATE person SET first_name = ?, last_name = ?, middle_name = ?, age = ? WHERE id = ?");
-        $update_stmt->execute([$firstName, $lastName, $middleName, $age, $updateID]);
-        header("Location: /index.php?updated=success");
-        exit();
-    } catch (PDOException $e) {
-        echo "<div class='alert alert-error'>Update failed: " . $e->getMessage() . "</div>";
-    }
 }
+
 
 //idisplay lahat ng information na nasa loob ng database
 try {
